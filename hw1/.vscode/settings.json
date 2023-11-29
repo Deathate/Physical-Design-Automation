@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.json": "json",
+        "fstream": "cpp",
+        "cstdlib": "cpp"
+    }
+}
