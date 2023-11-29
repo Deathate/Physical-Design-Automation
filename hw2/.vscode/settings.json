@@ -75,5 +75,21 @@
         "__nullptr": "cpp",
         "ranges": "cpp"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "multiCommand.commands": [
+        {
+            "command": "cpp_make",
+            "sequence": [
+                {
+                    "command":"workbench.action.terminal.clear"
+                },
+                {
+                    "command": "workbench.action.terminal.sendSequence",
+                    "args": {
+                        "text": "make test && ./main testcase/n300.in outupt.dat\u000D"
+                    }
+                }
+            ]
+        }
+    ]
 }
