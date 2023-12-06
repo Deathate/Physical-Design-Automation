@@ -12,6 +12,6 @@ $(TARGET): $(SRC)
 	$(CXX) $(SRC) $(CXXFLAGS) -O2 -o $(TARGET)
 
 $(TARGET_TEST): $(SRC)
-	$(CXX) $(SRC) -std=c++23 -I "../.." -O2 -o $(TARGET_TEST)
+	$(CXX) $(SRC) -std=c++23 -DDEBUG -I "../.." -O2 -o $(TARGET_TEST)
 clean:
 	rm -f $(TARGET)

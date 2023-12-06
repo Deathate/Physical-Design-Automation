@@ -6,8 +6,9 @@
 #include <random>
 #include <ranges>
 #include <sstream>
-
+#ifdef DEBUG
 #include "cpp_utility/print.cpp"
+#endif
 using namespace std;
 enum CutType { VERTICAL,
                HORIZONTAL,
@@ -331,29 +332,34 @@ void output(string file_path, Node *tree) {
 }
 
 int main(int argc, char const *argv[]) {
+#ifdef DEBUG
     Timer tmr;
+#endif
     string input_file_path = argv[1];
     string output_file_path = argv[2];
     ifstream input_file(input_file_path);
-    stringstream ss;
+    stringstream ss({istreambuf_iterator<char>{input_file}, {}});
     float rl, ru;  // r_lowerbound, r_upperbound
     vector<pair<string, array<int, 2>>> blocks;
     unordered_map<string, Node> nodes;
-    ss << input_file.rdbuf();
-    ss >> rl >> ru;
-
     string line;
-    ss.ignore();
     int total_area = 0;
+    bool fist_line = true;
     while (getline(ss, line)) {
         string block_name;
         int block_w, block_h;
         stringstream ss_line(line);
-        ss_line >> block_name >> block_w >> block_h;
-        nodes.insert({block_name, Node(block_name, block_w, block_h)});
-        total_area += block_w * block_h;
-        blocks.emplace_back(block_name, array<int, 2>{block_w, block_h});
+        if (fist_line) {
+            ss_line >> rl >> ru;
+            fist_line = false;
+        } else {
+            ss_line >> block_name >> block_w >> block_h;
+            nodes.insert({block_name, Node(block_name, block_w, block_h)});
+            total_area += block_w * block_h;
+            blocks.emplace_back(block_name, array<int, 2>{block_w, block_h});
+        }
     }
+
     int roughly_width = static_cast<int>(sqrt(total_area * ru));
     ranges::sort(blocks, ranges::greater(), [](const auto &v) { return max(v.second[0], v.second[1]); });
     vector<Node> polish_expression;
@@ -385,53 +391,54 @@ int main(int argc, char const *argv[]) {
     buildTreeHelper(polish_expression);
     int cost_e = calculate(&polish_expression.back());
     output(output_file_path, &polish_expression.back());
+#ifdef DEBUG
     print("White space:", total_area / polish_expression.back().getArea());
     print("time:", tmr.elapsed());
-    exit();
+#endif
 
-    // Simulated Annealing
-    vector<Node> s_old = polish_expression;
-    int lowest_area = cost_e;
-    double T = 1;
-    int MT = 0;
-    int reject = 0;
-    int uphill = 0;
-    int N = polish_expression.size() * 5;
-    output(output_file_path, &polish_expression.back());
-    int r = 0;
-    do {
-        MT = uphill = reject = 0;
-        while (uphill < N && MT < 2 * N) {
-            ++r;
-            MT += 1;
-            s_old = polish_expression;
-            int m = disturb(polish_expression);
-            int cost_ne = calculate(&polish_expression.back());
-            int cost_delta = cost_ne - cost_e;
-            if (cost_delta <= 0) {
-                cost_e = cost_ne;
-                if (cost_ne < lowest_area) {
-                    lowest_area = cost_ne;
-                    print(r, polish_expression.back().getArea());
-                    // print(polish_expression.back().getOptimalShape());
-                    output(output_file_path, &polish_expression.back());
-                } else {
-                    reject += 1;
-                }
-            } else {
-                float p = exp(-cost_delta / T);
-                float r = uniform_real_distribution<float>(0, 1)(gen);
-                if (r < p) {
-                    cost_e = cost_ne;
-                    uphill += 1;
-                    reject += 1;
-                } else {
-                    polish_expression = s_old;
-                }
-            }
-        }
-        T *= 0.85;
-    } while (((1.0 * reject / MT) < 0.95) && T > 0.1);
-    print("time:", tmr.elapsed(), r);
+    // // Simulated Annealing
+    // vector<Node> s_old = polish_expression;
+    // int lowest_area = cost_e;
+    // double T = 1;
+    // int MT = 0;
+    // int reject = 0;
+    // int uphill = 0;
+    // int N = polish_expression.size() * 5;
+    // output(output_file_path, &polish_expression.back());
+    // int r = 0;
+    // do {
+    //     MT = uphill = reject = 0;
+    //     while (uphill < N && MT < 2 * N) {
+    //         ++r;
+    //         MT += 1;
+    //         s_old = polish_expression;
+    //         int m = disturb(polish_expression);
+    //         int cost_ne = calculate(&polish_expression.back());
+    //         int cost_delta = cost_ne - cost_e;
+    //         if (cost_delta <= 0) {
+    //             cost_e = cost_ne;
+    //             if (cost_ne < lowest_area) {
+    //                 lowest_area = cost_ne;
+    //                 print(r, polish_expression.back().getArea());
+    //                 // print(polish_expression.back().getOptimalShape());
+    //                 output(output_file_path, &polish_expression.back());
+    //             } else {
+    //                 reject += 1;
+    //             }
+    //         } else {
+    //             float p = exp(-cost_delta / T);
+    //             float r = uniform_real_distribution<float>(0, 1)(gen);
+    //             if (r < p) {
+    //                 cost_e = cost_ne;
+    //                 uphill += 1;
+    //                 reject += 1;
+    //             } else {
+    //                 polish_expression = s_old;
+    //             }
+    //         }
+    //     }
+    //     T *= 0.85;
+    // } while (((1.0 * reject / MT) < 0.95) && T > 0.1);
+    // print("time:", tmr.elapsed(), r);
     return 0;
 }

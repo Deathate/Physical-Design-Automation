@@ -1,12 +1,14 @@
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <list>
 #include <random>
 #include <ranges>
-#include <regex>
-
-// #include "cpp_utility/print.cpp"
+#include <sstream>
+#ifdef DEBUG
+#include "cpp_utility/print.cpp"
+#endif
 using namespace std;
 enum CutType { VERTICAL,
                HORIZONTAL,
@@ -53,14 +55,12 @@ struct Node {
     }
     // 可以只用一邊來判斷
     bool isLeaf() { return this->left == nullptr && this->right == nullptr; }
-    bool isLeftChild() { return this->parent->left == this; }
-    // bool isRightChild() { return this->parent->right == this; }
     bool isVertical() { return this->type == VERTICAL; }
     bool isHorizontal() { return this->type == HORIZONTAL; }
     pair<pair<int, int>, pair<int, int>> const &getOptimalShape() {
         return *next(this->meta_shape.begin(), this->best_idx);
     }
-    pair<int, int> getWidthNHeight() {
+    pair<int, int> const &getWidthNHeight() {
         return getOptimalShape().first;
     }
     float getArea() {
@@ -246,7 +246,7 @@ void retrieveCoordinate(Node *tree, int current_x = 0, int current_y = 0) {
         } else {
             current_x = node->x = node->left->x;
             current_y = node->y = node->left->y;
-            auto [w, h] = node->left->getWidthNHeight();
+            auto &[w, h] = node->left->getWidthNHeight();
             if (node->isVertical())
                 current_x += w;
             else
@@ -332,29 +332,34 @@ void output(string file_path, Node *tree) {
 }
 
 int main(int argc, char const *argv[]) {
-    // Timer tmr;
+#ifdef DEBUG
+    Timer tmr;
+#endif
     string input_file_path = argv[1];
     string output_file_path = argv[2];
     ifstream input_file(input_file_path);
-    stringstream ss;
+    stringstream ss({istreambuf_iterator<char>{input_file}, {}});
     float rl, ru;  // r_lowerbound, r_upperbound
     vector<pair<string, array<int, 2>>> blocks;
     unordered_map<string, Node> nodes;
-    ss << input_file.rdbuf();
-    ss >> rl >> ru;
-
     string line;
-    ss.ignore();
     int total_area = 0;
+    bool fist_line = true;
     while (getline(ss, line)) {
         string block_name;
         int block_w, block_h;
         stringstream ss_line(line);
-        ss_line >> block_name >> block_w >> block_h;
-        nodes.insert({block_name, Node(block_name, block_w, block_h)});
-        total_area += block_w * block_h;
-        blocks.emplace_back(block_name, array<int, 2>{block_w, block_h});
+        if (fist_line) {
+            ss_line >> rl >> ru;
+            fist_line = false;
+        } else {
+            ss_line >> block_name >> block_w >> block_h;
+            nodes.insert({block_name, Node(block_name, block_w, block_h)});
+            total_area += block_w * block_h;
+            blocks.emplace_back(block_name, array<int, 2>{block_w, block_h});
+        }
     }
+
     int roughly_width = static_cast<int>(sqrt(total_area * ru));
     ranges::sort(blocks, ranges::greater(), [](const auto &v) { return max(v.second[0], v.second[1]); });
     vector<Node> polish_expression;
@@ -385,11 +390,13 @@ int main(int argc, char const *argv[]) {
 
     buildTreeHelper(polish_expression);
     int cost_e = calculate(&polish_expression.back());
-    // print(polish_expression.back().getOptimalShape());
-    // print(polish_expression.back().getRatio());
-    // print(polish_expression.back().getArea(), total_area);
     output(output_file_path, &polish_expression.back());
+#ifdef DEBUG
+    print("White space:", total_area / polish_expression.back().getArea());
+    print("time:", tmr.elapsed());
+#endif
 
+    // // Simulated Annealing
     // vector<Node> s_old = polish_expression;
     // int lowest_area = cost_e;
     // double T = 1;
@@ -412,7 +419,7 @@ int main(int argc, char const *argv[]) {
     //             cost_e = cost_ne;
     //             if (cost_ne < lowest_area) {
     //                 lowest_area = cost_ne;
-    //                 // print(r, polish_expression.back().getArea());
+    //                 print(r, polish_expression.back().getArea());
     //                 // print(polish_expression.back().getOptimalShape());
     //                 output(output_file_path, &polish_expression.back());
     //             } else {
@@ -432,6 +439,6 @@ int main(int argc, char const *argv[]) {
     //     }
     //     T *= 0.85;
     // } while (((1.0 * reject / MT) < 0.95) && T > 0.1);
-    // print("time:", tmr.elapsed());
+    // print("time:", tmr.elapsed(), r);
     return 0;
 }
