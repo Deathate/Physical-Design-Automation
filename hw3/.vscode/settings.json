@@ -9,7 +9,21 @@
                 {
                     "command": "workbench.action.terminal.sendSequence",
                     "args": {
-                        "text": "make test && ./main testcase/case1.txt outupt.dat\u000D"
+                        "text": "make test && ./main testcase/example.sp output.dat\u000D"
+                    }
+                }
+            ]
+        },
+        {
+            "command": "cpp_run",
+            "sequence": [
+                {
+                    "command": "workbench.action.terminal.clear"
+                },
+                {
+                    "command": "workbench.action.terminal.sendSequence",
+                    "args": {
+                        "text": "make && ./Lab3 testcase/ASYNC_DFFHx1_ASAP7_75t_R.sp output.dat\u000D"
                     }
                 }
             ]
@@ -89,7 +103,12 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "__nullptr": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }
