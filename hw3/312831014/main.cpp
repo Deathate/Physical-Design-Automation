@@ -84,26 +84,19 @@ int main(int argc, char* argv[]) {
     int nmos_height = nmos[0].width;
     vector<int> rooms(pmos.size() * 6);
     int i = 0;
-    for (int c = 0; c < pmos.size(); ++c) {
-        // auto is_active = [&](string s) {
-        //     return s == "VDD" || s == "VSS";
-        // };
-        // rooms[i] = is_active(pmos[c].in) || is_active(nmos[c].in) ? 25 : 34;
+    for (int _ = 0; _ < pmos.size(); ++_) {
         rooms[i] = 34;
         rooms[i + 1] = 20;
-        // rooms[i + 2] = is_active(pmos[c].out) || is_active(nmos[c].out) ? 25 : 34;
         rooms[i + 2] = 34;
         rooms[i + 3] = 20;
         rooms[i + 4] = 34;
         rooms[i + 5] = 20;
         i += 6;
     }
-    // rooms[6] = 34;
-    rooms[8] = 25;
     rooms[0] = 25;
-    // rooms[rooms.size() - 4] = 25;
+    rooms[rooms.size() - 4] = 25;
 #ifdef DEBUG
-    print("rooms");
+    print("rooms:", rooms.size() - 3);
     auto s = (rooms | ranges::views::take(rooms.size() - 3));
     print(vector<int>{s.begin(), s.end()});
 
@@ -119,7 +112,7 @@ int main(int argc, char* argv[]) {
         if (miny->y != maxy->y) {
             length += pmos_height / 2.0 + nmos_height / 2.0 + 27;
         }
-        if (length != 0)
+        if (length != 0 && minx->x != maxx->x)
             length -= rooms[minx->x] / 2.0 + rooms[maxx->x] / 2.0;
 #ifdef DEBUG
         print(pin, *minx, *maxx, *miny, *maxy);
